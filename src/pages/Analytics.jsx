@@ -178,10 +178,10 @@ export default function Analytics() {
           <p className="page-subtitle">Platform-wide insights and historical trends</p>
         </div>
         <div className="analytics-header-actions">
-          <button className="btn btn-outline" onClick={() => alert('Downloading CSV...')}>
+          <button className="btn btn-outline-primary" onClick={() => alert('Downloading CSV...')}>
             <FileText /> Export CSV
           </button>
-          <button className="btn btn-outline" onClick={() => alert('Downloading Excel...')}>
+          <button className="btn btn-outline-primary" onClick={() => alert('Downloading Excel...')}>
             <Table /> Export Excel
           </button>
         </div>

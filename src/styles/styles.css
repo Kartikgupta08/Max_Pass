@@ -536,7 +536,21 @@ body { font-size: var(--text-base); line-height: 1.6; }
   transition: color var(--transition-fast);
 }
 
-.input-field, .select-field {
+.input-field {
+  width: 100%; 
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+  border: 2px solid var(--primary-color); 
+  border-radius: var(--radius-md);
+  background-color: var(--surface-color); 
+  color: var(--text-primary);
+  font-size: var(--text-sm); 
+  font-family: 'Manrope', inherit;
+  transition: all var(--transition-fast); 
+  outline: none;
+  min-height: 40px;
+}
+
+.select-field {
   width: 100%; 
   padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
   border: 1px solid var(--border-light); 
@@ -852,6 +866,18 @@ body { font-size: var(--text-base); line-height: 1.6; }
 .btn-outline:hover { 
   background-color: var(--surface-hover); 
   border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.btn-outline-primary {
+  background-color: transparent;
+  border: 2px solid var(--primary-color);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.btn-outline-primary:hover {
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
 }
 

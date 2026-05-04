@@ -134,7 +134,7 @@ export default function CustomDatePicker({ value, onChange, style }) {
                 value={viewYear} 
                 onChange={(e) => setViewYear(parseInt(e.target.value))}
               >
-                {Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - 10 + i).map((y) => (
+                {Array.from({ length: 20 }, (_, i) => 2026 + i).map((y) => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
