@@ -1289,7 +1289,7 @@ tbody tr:last-child td {
   }
 
   .brand-menu-btn {
-    display: none;
+    display: inline-flex;
   }
 
   .sidebar.collapsed {
