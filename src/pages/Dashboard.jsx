@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search, Smartphone, BatteryCharging, RadioTower, WifiOff, AlertTriangle } from 'lucide-react'
 import { fetchBatteries, getSelectedImei, setSelectedImei, clearSelectedImei } from '../services/services.js'
+import CustomSelect from '../components/CustomSelect.jsx'
 
 export default function Dashboard() {
   const [allBatteries, setAllBatteries] = useState([])
@@ -192,18 +193,26 @@ export default function Dashboard() {
             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           />
         </div>
-        <select className="select-field" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="all">All Categories</option>
-          <option value="ess">ESS</option>
-          <option value="2w">2-Wheeler</option>
-          <option value="3w">3-Wheeler</option>
-          <option value="other">Other</option>
-        </select>
-        <select className="select-field" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="Online">Online</option>
-          <option value="Offline">Offline</option>
-        </select>
+        <CustomSelect 
+          value={category} 
+          onChange={setCategory} 
+          options={[
+            { label: 'All Categories', value: 'all' },
+            { label: 'ESS', value: 'ess' },
+            { label: '2-Wheeler', value: '2w' },
+            { label: '3-Wheeler', value: '3w' },
+            { label: 'Other', value: 'other' }
+          ]} 
+        />
+        <CustomSelect 
+          value={status} 
+          onChange={setStatus} 
+          options={[
+            { label: 'All Status', value: 'all' },
+            { label: 'Online', value: 'Online' },
+            { label: 'Offline', value: 'Offline' }
+          ]} 
+        />
         <div className="search-wrapper" style={{ maxWidth: 320 }}>
           <Smartphone />
           <input

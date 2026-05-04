@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react'
-import { Search, Filter, MessageSquareWarning, CircleAlert, OctagonAlert, ThumbsUp } from 'lucide-react'
+import React, { useEffect, useState, useMemo } from 'react'
+import { Search, Filter, MessageSquareWarning, CircleAlert, OctagonAlert, ThumbsUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { fetchAlerts } from '../services/services.js'
+import CustomSelect from '../components/CustomSelect.jsx'
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState([])
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState('all')
   const [status, setStatus] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
 
   useEffect(() => {
     const load = async () => {
@@ -33,6 +36,26 @@ export default function Alerts() {
     const matchStatus = status === 'all' || st === status
     return matchQuery && matchSev && matchStatus
   })
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, severity, status])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const start = (currentPage - 1) * pageSize
+  const pageData = filtered.slice(start, start + pageSize)
+
+  const paginationNumbers = useMemo(() => {
+    const maxPages = Math.min(5, totalPages)
+    let startPage = Math.max(1, currentPage - 2)
+    let endPage = Math.min(totalPages, startPage + maxPages - 1)
+    if (endPage - startPage < maxPages - 1) {
+      startPage = Math.max(1, endPage - maxPages + 1)
+    }
+    const pages = []
+    for (let i = startPage; i <= endPage; i++) pages.push(i)
+    return pages
+  }, [currentPage, totalPages])
 
   const totalActive = filtered.filter((a) => a.status === 'Active').length
   const high = filtered.filter((a) => a.sev === 'High').length
@@ -92,17 +115,25 @@ export default function Alerts() {
           <Search />
           <input type="text" className="input-field" placeholder="Search alerts..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <select className="select-field" value={severity} onChange={(e) => setSeverity(e.target.value)}>
-          <option value="all">All Severities</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <select className="select-field" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="resolved">Resolved</option>
-        </select>
+        <CustomSelect 
+          value={severity} 
+          onChange={setSeverity} 
+          options={[
+            { label: 'All Severities', value: 'all' },
+            { label: 'High', value: 'high' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Low', value: 'low' }
+          ]} 
+        />
+        <CustomSelect 
+          value={status} 
+          onChange={setStatus} 
+          options={[
+            { label: 'All Statuses', value: 'all' },
+            { label: 'Active', value: 'active' },
+            { label: 'Resolved', value: 'resolved' }
+          ]} 
+        />
         <button className="btn btn-primary" id="alerts-filter-btn"><Filter size={18} /> Filter</button>
       </div>
 
@@ -120,10 +151,10 @@ export default function Alerts() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {pageData.length === 0 ? (
               <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>No alerts found</td></tr>
             ) : (
-              filtered.map((alert) => {
+              pageData.map((alert) => {
                 let sevClass = ''
                 if (alert.sev === 'High') sevClass = 'danger'
                 if (alert.sev === 'Medium') sevClass = 'warning'
@@ -151,6 +182,24 @@ export default function Alerts() {
             )}
           </tbody>
         </table>
+        {totalPages > 1 && (
+          <div className="pagination">
+            <span>Page {currentPage} of {totalPages}</span>
+            <div className="pagination-controls">
+              <button className="page-btn" title="Previous page" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <ChevronLeft />
+              </button>
+              <span style={{ display: 'flex', gap: '0.25rem' }}>
+                {paginationNumbers.map((page) => (
+                  <button key={page} className={`page-btn ${page === currentPage ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
+                ))}
+              </span>
+              <button className="page-btn" title="Next page" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                <ChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="card alerts-legend-card">

@@ -1,11 +1,17 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FileText, Table, Search, RotateCcw, BatteryCharging, RadioTower, BatteryMedium, HeartPulse } from 'lucide-react'
 import Chart from 'chart.js/auto'
 import { fetchAnalytics } from '../services/services.js'
+import CustomSelect from '../components/CustomSelect.jsx'
+import CustomDatePicker from '../components/CustomDatePicker.jsx'
 
 export default function Analytics() {
   const instancesRef = useRef([])
   const analyticsDataRef = useRef(null)
+  const [model, setModel] = useState('all')
+  const [location, setLocation] = useState('all')
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+  const [endDate, setEndDate] = useState(new Date())
 
   useEffect(() => {
     const load = async () => {
@@ -184,28 +190,36 @@ export default function Analytics() {
       <div className="filter-grid">
         <div>
           <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Battery Model</label>
-          <select className="select-field" id="analytics-model" defaultValue="all">
-            <option value="all">All Models</option>
-            <option value="ess">ESS-5000</option>
-            <option value="2w">2W-LFP-60V</option>
-          </select>
+          <CustomSelect 
+            value={model} 
+            onChange={setModel} 
+            options={[
+              { label: 'All Models', value: 'all' },
+              { label: 'ESS-5000', value: 'ess' },
+              { label: '2W-LFP-60V', value: '2w' }
+            ]} 
+          />
         </div>
         <div>
           <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Location</label>
-          <select className="select-field" id="analytics-location" defaultValue="all">
-            <option value="all">All Locations</option>
-            <option value="bangalore">Bangalore</option>
-            <option value="mumbai">Mumbai</option>
-            <option value="delhi">Delhi</option>
-          </select>
+          <CustomSelect 
+            value={location} 
+            onChange={setLocation} 
+            options={[
+              { label: 'All Locations', value: 'all' },
+              { label: 'Bangalore', value: 'bangalore' },
+              { label: 'Mumbai', value: 'mumbai' },
+              { label: 'Delhi', value: 'delhi' }
+            ]} 
+          />
         </div>
         <div>
           <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Start Date</label>
-          <input type="date" className="input-field" id="analytics-start-date" defaultValue={new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} />
+          <CustomDatePicker value={startDate} onChange={setStartDate} />
         </div>
         <div>
           <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>End Date</label>
-          <input type="date" className="input-field" id="analytics-end-date" defaultValue={new Date().toISOString().split('T')[0]} />
+          <CustomDatePicker value={endDate} onChange={setEndDate} />
         </div>
         <div className="filter-actions">
           <button className="btn btn-primary" id="analytics-search-btn"><Search /> Search</button>
