@@ -138,7 +138,7 @@ export default function LiveLocations() {
                 </div>
                 <div className="metric-box">
                   <div className="kpi-title">Voltage</div>
-                  <div className="kpi-value" style={{ fontSize: '1.5rem' }} id="panelVol">{panelBattery.v}<span className="kpi-unit">V</span></div>
+                  <div className="kpi-value" style={{ fontSize: '1.5rem', color: 'var(--warning-color)' }} id="panelVol">{panelBattery.v}<span className="kpi-unit">V</span></div>
                 </div>
                 <div className="metric-box">
                   <div className="kpi-title">Current</div>
