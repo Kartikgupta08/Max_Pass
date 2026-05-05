@@ -85,8 +85,8 @@ export default function Analytics() {
       legend: { display: true, position: 'top' }
     },
     scales: {
-      x: { grid: { color: getGridColor(), drawBorder: false }, ticks: { color: getTickColor() } },
-      y: { grid: { color: getGridColor(), drawBorder: false }, ticks: { color: getTickColor() } }
+      x: { grid: { display: false }, ticks: { color: getTickColor() } },
+      y: { grid: { display: false }, ticks: { color: getTickColor() } }
     }
   }
 

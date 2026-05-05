@@ -105,10 +105,10 @@
 }
 
 .metric-box {
-    background: linear-gradient(135deg, var(--bg-color) 0%, var(--surface-color) 100%);
+    background: var(--surface-color);
     padding: var(--space-4);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 25%, var(--border-light) 75%);
     transition: all var(--transition-fast);
 }
 
