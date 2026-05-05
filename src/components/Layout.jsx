@@ -80,6 +80,12 @@ export default function Layout() {
           <img src={logoUrl} alt="MaxPass" className="brand-logo" />
           <span className="brand-label">MaxPass</span>
         </div>
+        <div className="header-right">
+          <button type="button" className="theme-toggle" id="theme-toggle-btn" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            <span className="theme-label">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
+        </div>
       </header>
 
       <div className="app-container">
@@ -116,12 +122,6 @@ export default function Layout() {
             </NavLink>
           </li>
           </ul>
-          <div className="sidebar-footer">
-            <button type="button" className="theme-toggle" id="theme-toggle-btn" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-              <span className="theme-label">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-            </button>
-          </div>
         </aside>
 
         <main className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`} id="app-content" onClick={() => setSidebarActive(false)}>

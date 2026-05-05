@@ -172,6 +172,7 @@ body { font-size: var(--text-base); line-height: 1.6; }
   z-index: 1000;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 var(--space-6);
   box-shadow: 0 2px 8px rgba(22, 37, 50, 0.08);
 }
@@ -180,6 +181,11 @@ body { font-size: var(--text-base); line-height: 1.6; }
   display: flex;
   align-items: center;
   gap: var(--space-4);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .header-left .brand-label {
@@ -383,13 +389,12 @@ body { font-size: var(--text-base); line-height: 1.6; }
   display: flex; 
   align-items: center; 
   justify-content: center;
-  width: 100%;
   gap: var(--space-3);
   cursor: pointer; 
   color: var(--sidebar-text-muted); 
   font-weight: 500; 
   font-size: 0.9rem;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   border: 2px solid var(--primary-color);
   background-color: color-mix(in srgb, var(--surface-color) 86%, var(--primary-light) 14%);
@@ -408,8 +413,7 @@ body { font-size: var(--text-base); line-height: 1.6; }
 
 .sidebar.collapsed .brand .brand-label,
 .sidebar.collapsed .brand > i[data-lucide="zap"],
-.sidebar.collapsed .nav-link .nav-label,
-.sidebar.collapsed .theme-toggle .theme-label {
+.sidebar.collapsed .nav-link .nav-label {
   display: none;
 }
 
@@ -425,11 +429,6 @@ body { font-size: var(--text-base); line-height: 1.6; }
 
 .sidebar.collapsed .sidebar-footer {
   padding: var(--space-4) var(--space-2);
-}
-
-.sidebar.collapsed .theme-toggle {
-  justify-content: center;
-  padding: var(--space-2);
 }
 
 .sidebar.collapsed .nav-link.active::before {
