@@ -152,9 +152,9 @@ export default function Dashboard() {
 
     if (!mapRef.current) {
       mapRef.current = L.map(mapContainerRef.current, { zoomControl: false }).setView([19.0760, 72.8777], 11)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap © CARTO'
+        attribution: '© OpenStreetMap'
       }).addTo(mapRef.current)
     }
 
