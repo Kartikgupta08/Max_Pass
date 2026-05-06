@@ -6,11 +6,11 @@ const MMD = {
     for (let i = 1; i <= count; i++) {
       const isOnline = Math.random() > 0.3
       const isFaulty = Math.random() < 0.12
-      const imei = String(860000000000000 + i)
+      const iot = String(860000000000000 + i)
       batteries.push({
         id: `BAT-${1000 + i}`,
         name: `Battery ${i}`,
-        imei,
+        iot,
         status: isOnline ? 'Online' : 'Offline',
         faulty: isFaulty,
         network: networks[Math.floor(Math.random() * networks.length)],

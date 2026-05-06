@@ -892,7 +892,7 @@ body { font-size: var(--text-base); line-height: 1.6; }
 }
 
 
-#global-imei-clear {
+#global-iot-clear {
   border: 2px solid var(--primary-color);
 }
 

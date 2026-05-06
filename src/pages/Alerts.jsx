@@ -22,9 +22,9 @@ export default function Alerts() {
     }
 
     load()
-    const onSelectedImeiChanged = () => load()
-    window.addEventListener('selectedImeiChanged', onSelectedImeiChanged)
-    return () => window.removeEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    const onSelectedIotChanged = () => load()
+    window.addEventListener('selectedIotChanged', onSelectedIotChanged)
+    return () => window.removeEventListener('selectedIotChanged', onSelectedIotChanged)
   }, [])
 
   const filtered = alerts.filter((a) => {

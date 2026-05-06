@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { Search, BatteryMedium, HeartPulse, BatteryCharging, Zap } from 'lucide-react'
-import { setSelectedImei, getSelectedBattery } from '../services/services.js'
+import { setSelectedIot, getSelectedBattery } from '../services/services.js'
 import MMD from '../data/mmd.js'
 import Chart from 'chart.js/auto'
 
@@ -84,32 +84,32 @@ export default function Battery() {
       if (!selected) return
       const searchInput = document.getElementById('bat-search')
       const specId = document.getElementById('battery-spec-id')
-      const specImei = document.getElementById('battery-spec-imei')
-      if (searchInput) searchInput.value = selected.imei
+      const specIot = document.getElementById('battery-spec-iot')
+      if (searchInput) searchInput.value = selected.iot
       if (specId) specId.textContent = selected.id
-      if (specImei) specImei.textContent = selected.imei
+      if (specIot) specIot.textContent = selected.iot
     }
 
-    const onSelectedImeiChanged = () => syncSelectedBattery()
-    window.addEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    const onSelectedIotChanged = () => syncSelectedBattery()
+    window.addEventListener('selectedIotChanged', onSelectedIotChanged)
     syncSelectedBattery()
 
-    return () => window.removeEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    return () => window.removeEventListener('selectedIotChanged', onSelectedIotChanged)
   }, [])
 
-  const applyImeiSelection = async () => {
+  const applyIotSelection = async () => {
     const searchInput = document.getElementById('bat-search')
     const specId = document.getElementById('battery-spec-id')
-    const specImei = document.getElementById('battery-spec-imei')
-    const imei = (searchInput?.value || '').trim()
-    if (!imei) return
-    const selected = await setSelectedImei(imei)
+    const specIot = document.getElementById('battery-spec-iot')
+    const iot = (searchInput?.value || '').trim()
+    if (!iot) return
+    const selected = await setSelectedIot(iot)
     if (!selected) {
-      alert('IMEI not found. Please use a valid IMEI from Fleet Overview.')
+      alert('IOT ID not found. Please use a valid IOT ID from Fleet Overview.')
       return
     }
     if (specId) specId.textContent = selected.id
-    if (specImei) specImei.textContent = selected.imei
+    if (specIot) specIot.textContent = selected.iot
   }
 
   return (
@@ -123,14 +123,14 @@ export default function Battery() {
 
       <div className="controls-bar card battery-controls">
         <div className="battery-search-group">
-          <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>IMEI ID</label>
+          <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem' }}>IOT ID</label>
           <div className="search-wrapper battery-search-wrapper">
             <Search />
-            <input type="text" className="input-field" id="bat-search" placeholder="Enter IMEI ID" />
+            <input type="text" className="input-field" id="bat-search" placeholder="Enter IOT ID" />
           </div>
         </div>
         <div className="battery-actions">
-          <button className="btn btn-primary" id="battery-imei-search-btn" onClick={applyImeiSelection}><Search size={18} /> Search</button>
+          <button className="btn btn-primary" id="battery-iot-search-btn" onClick={applyIotSelection}><Search size={18} /> Search</button>
         </div>
       </div>
 
@@ -210,7 +210,7 @@ export default function Battery() {
         <h3 className="chart-header page-section-title">Battery Specifications</h3>
         <div className="info-panel">
           <div className="info-item"><span className="info-label">Battery ID</span><span className="info-value" id="battery-spec-id">-</span></div>
-          <div className="info-item"><span className="info-label">IMEI</span><span className="info-value" id="battery-spec-imei">-</span></div>
+          <div className="info-item"><span className="info-label">IOT ID</span><span className="info-value" id="battery-spec-iot">-</span></div>
           <div className="info-item"><span className="info-label">Power</span><span className="info-value">1.27 kW</span></div>
           <div className="info-item"><span className="info-label">Cycles</span><span className="info-value">245</span></div>
           <div className="info-item"><span className="info-label">Temperature</span><span className="info-value">28°C</span></div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search, Smartphone, BatteryCharging, RadioTower, WifiOff, AlertTriangle } from 'lucide-react'
-import { fetchBatteries, getSelectedImei, setSelectedImei, clearSelectedImei } from '../services/services.js'
+import { fetchBatteries, getSelectedIot, setSelectedIot, clearSelectedIot } from '../services/services.js'
 import CustomSelect from '../components/CustomSelect.jsx'
 
 export default function Dashboard() {
@@ -12,22 +12,22 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [category, setCategory] = useState('all')
   const [status, setStatus] = useState('all')
-  const [countLabel, setCountLabel] = useState('Loading batteries...')
-  const [globalImei, setGlobalImei] = useState('')
+  const [countLabel, setCountLabel] = useState('Loading devices...')
+  const [globalIot, setGlobalIot] = useState('')
 
   const pageSize = 10
 
   useEffect(() => {
     const load = async () => {
-      setCountLabel('Loading batteries...')
+      setCountLabel('Loading devices...')
       try {
         const batteries = await fetchBatteries()
         setAllBatteries(batteries)
         setFilteredBatteries(batteries)
-        const selected = getSelectedImei()
-        if (selected) setGlobalImei(selected)
+        const selected = getSelectedIot()
+        if (selected) setGlobalIot(selected)
       } catch {
-        setCountLabel('Unable to fetch batteries')
+        setCountLabel('Unable to fetch devices')
       }
     }
 
@@ -36,11 +36,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const handler = () => {
-      const selected = getSelectedImei()
-      setGlobalImei(selected || '')
+      const selected = getSelectedIot()
+      setGlobalIot(selected || '')
     }
-    window.addEventListener('selectedImeiChanged', handler)
-    return () => window.removeEventListener('selectedImeiChanged', handler)
+    window.addEventListener('selectedIotChanged', handler)
+    return () => window.removeEventListener('selectedIotChanged', handler)
   }, [])
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function Dashboard() {
       const matchSearch = !searchTerm ||
         bat.name.toLowerCase().includes(searchTerm) ||
         bat.id.toLowerCase().includes(searchTerm) ||
-        bat.imei.toLowerCase().includes(searchTerm)
+        bat.iot.toLowerCase().includes(searchTerm)
 
       const tag = bat.tag.toLowerCase()
       const matchCategory = category === 'all' ||
@@ -84,7 +84,7 @@ export default function Dashboard() {
     setCurrentPage(1)
 
     const showing = Math.min(pageSize, next.length)
-    setCountLabel(`Showing ${showing} of ${next.length} batteries`)
+    setCountLabel(`Showing ${showing} of ${next.length} devices`)
   }, [allBatteries, searchTerm, category, status, sortColumn, sortDirection])
 
   const totalPages = Math.max(1, Math.ceil(filteredBatteries.length / pageSize))
@@ -94,7 +94,6 @@ export default function Dashboard() {
   const totalCount = allBatteries.length
   const onlineCount = allBatteries.filter((bat) => bat.status === 'Online').length
   const offlineCount = totalCount - onlineCount
-  const faultyCount = allBatteries.filter((bat) => bat.faulty).length
 
   const paginationNumbers = useMemo(() => {
     const maxPages = Math.min(5, totalPages)
@@ -108,21 +107,21 @@ export default function Dashboard() {
     return pages
   }, [currentPage, totalPages])
 
-  const applyGlobalImei = async () => {
-    const imei = globalImei.trim()
-    if (!imei) return
-    const selected = await setSelectedImei(imei)
+  const applyGlobalIot = async () => {
+    const iot = globalIot.trim()
+    if (!iot) return
+    const selected = await setSelectedIot(iot)
     if (!selected) {
-      alert('IMEI not found. Please enter a valid IMEI ID from fleet records.')
+      alert('IOT ID not found. Please enter a valid IOT ID from fleet records.')
       return
     }
-    setSearchTerm(selected.imei.toLowerCase())
-    setCountLabel(`Global IMEI selected: ${selected.imei} (${selected.id})`)
+    setSearchTerm(selected.iot.toLowerCase())
+    setCountLabel(`Global IOT ID selected: ${selected.iot} (${selected.id})`)
   }
 
   const clearGlobal = () => {
-    clearSelectedImei()
-    setGlobalImei('')
+    clearSelectedIot()
+    setGlobalIot('')
   }
 
   const toggleSort = (column) => {
@@ -139,7 +138,7 @@ export default function Dashboard() {
       <header className="page-header">
         <div>
           <h1 className="page-title">Fleet Overview</h1>
-          <p className="page-subtitle">Monitor and manage all registered batteries</p>
+          <p className="page-subtitle">Monitor and manage all registered devices</p>
         </div>
       </header>
 
@@ -147,7 +146,7 @@ export default function Dashboard() {
         <div className="kpi-card fleet-kpi-card edge-accent edge-accent-primary">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
-              <div className="kpi-title">Total Batteries</div>
+              <div className="kpi-title">Total Devices</div>
               <div className="kpi-value" id="kpi-total-batteries">{totalCount}</div>
             </div>
             <BatteryCharging style={{ color: 'var(--primary-color)', width: 28, height: 28 }} />
@@ -156,7 +155,7 @@ export default function Dashboard() {
         <div className="kpi-card fleet-kpi-card edge-accent edge-accent-success">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
-              <div className="kpi-title">Online Batteries</div>
+              <div className="kpi-title">Online Devices</div>
               <div className="kpi-value good" id="kpi-online-batteries">{onlineCount}</div>
             </div>
             <RadioTower style={{ color: 'var(--success-color)', width: 28, height: 28 }} />
@@ -165,19 +164,10 @@ export default function Dashboard() {
         <div className="kpi-card fleet-kpi-card edge-accent edge-accent-danger">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
-              <div className="kpi-title">Offline Batteries</div>
+              <div className="kpi-title">Offline Devices</div>
               <div className="kpi-value critical" id="kpi-offline-batteries">{offlineCount}</div>
             </div>
             <WifiOff style={{ color: 'var(--danger-color)', width: 28, height: 28 }} />
-          </div>
-        </div>
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-warning">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-            <div>
-              <div className="kpi-title">Faulty Batteries</div>
-              <div className="kpi-value warning" id="kpi-faulty-batteries">{faultyCount}</div>
-            </div>
-            <AlertTriangle style={{ color: 'var(--warning-color)', width: 28, height: 28 }} />
           </div>
         </div>
       </div>
@@ -188,7 +178,7 @@ export default function Dashboard() {
           <input
             type="text"
             className="input-field"
-            placeholder="Search by name, battery ID, or IMEI..."
+            placeholder="Search by name, device ID, or IOT ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           />
@@ -218,16 +208,16 @@ export default function Dashboard() {
           <input
             type="text"
             className="input-field"
-            placeholder="Set global IMEI ID..."
-            value={globalImei}
-            onChange={(e) => setGlobalImei(e.target.value)}
+            placeholder="Set global IOT ID..."
+            value={globalIot}
+            onChange={(e) => setGlobalIot(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') applyGlobalImei()
+              if (e.key === 'Enter') applyGlobalIot()
             }}
           />
         </div>
-        <button className="btn btn-primary" onClick={applyGlobalImei}>Apply IMEI</button>
-        <button className="btn btn-outline" id="global-imei-clear" onClick={clearGlobal}>Clear IMEI</button>
+        <button className="btn btn-primary" onClick={applyGlobalIot}>Apply IOT ID</button>
+        <button className="btn btn-outline" id="global-iot-clear" onClick={clearGlobal}>Clear IOT ID</button>
       </div>
 
       <div style={{ marginBottom: 'var(--space-4)', color: 'var(--text-secondary)', fontSize: '0.875rem', padding: '0 var(--space-2)' }}>
@@ -239,8 +229,8 @@ export default function Dashboard() {
           <thead>
             <tr>
               <th>
-                <button className="sort-header" onClick={() => toggleSort('name')}>
-                  Name <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
+                <button className="sort-header" onClick={() => toggleSort('iot')}>
+                  Device ID <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
                 </button>
               </th>
               <th>
@@ -248,29 +238,15 @@ export default function Dashboard() {
                   Status <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
                 </button>
               </th>
-              <th>Network</th>
               <th>Tag</th>
-              <th>Last Update</th>
-              <th>
-                <button className="sort-header" onClick={() => toggleSort('speed')}>
-                  Speed (km/h) <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
-                </button>
-              </th>
-              <th>
-                <button className="sort-header" onClick={() => toggleSort('distance')}>
-                  Today Distance <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
-                </button>
-              </th>
-              <th>Address</th>
-              <th>Plan Ends</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {pageData.length === 0 ? (
               <tr>
-                <td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                  No batteries found
+                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                  No devices found
                 </td>
               </tr>
             ) : (
@@ -279,9 +255,7 @@ export default function Dashboard() {
                 return (
                   <tr key={bat.id}>
                     <td>
-                      <div style={{ fontWeight: 500 }}>{bat.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{bat.id}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>IMEI: {bat.imei}</div>
+                      <div style={{ fontWeight: 500 }}>{bat.iot}</div>
                     </td>
                     <td>
                       <span className={`badge ${statusClass}`}>
@@ -289,15 +263,9 @@ export default function Dashboard() {
                         {bat.status}
                       </span>
                     </td>
-                    <td>{bat.network}</td>
                     <td><span className="badge badge-blue">{bat.tag}</span></td>
-                    <td>{bat.lastUpdate}</td>
-                    <td>{bat.speed}</td>
-                    <td>{bat.distance} km</td>
-                    <td>{bat.address}</td>
-                    <td>{bat.planEnds}</td>
                     <td>
-                      <button className="btn-icon" title="View Details" aria-label="View battery details">
+                      <button className="btn-icon" title="View Details" aria-label="View device details">
                         <span style={{ display: 'inline-flex', transform: 'translateY(1px)' }}>⋮</span>
                       </button>
                     </td>

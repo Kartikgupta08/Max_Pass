@@ -1,11 +1,11 @@
 import MMD from '../data/mmd.js'
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-const STORAGE_KEY = 'selected-imei'
+const STORAGE_KEY = 'selected-iot'
 
 const state = {
   batteriesCache: null,
-  selectedImei: localStorage.getItem(STORAGE_KEY) || null
+  selectedIot: localStorage.getItem(STORAGE_KEY) || null
 }
 
 const toSeverity = (alertType) => {
@@ -31,7 +31,7 @@ const toAlert = (battery, idx) => {
   const minutesAgo = 8 + idx * 13
   return {
     id: battery.id,
-    imei: battery.imei,
+    iot: battery.iot,
     type,
     sev,
     time: minutesAgo < 60 ? `${minutesAgo} mins ago` : `${Math.floor(minutesAgo / 60)} hours ago`,
@@ -85,30 +85,30 @@ const ensureBatteries = async () => {
   return state.batteriesCache
 }
 
-export const getSelectedImei = () => state.selectedImei
+export const getSelectedIot = () => state.selectedIot
 
-export const setSelectedImei = async (imei) => {
+export const setSelectedIot = async (iot) => {
   const batteries = await ensureBatteries()
-  const value = (imei || '').trim()
-  const selected = batteries.find((b) => b.imei === value)
+  const value = (iot || '').trim()
+  const selected = batteries.find((b) => b.iot === value)
   if (!selected) return null
 
-  state.selectedImei = selected.imei
-  localStorage.setItem(STORAGE_KEY, state.selectedImei)
-  window.dispatchEvent(new CustomEvent('selectedImeiChanged', { detail: { imei: state.selectedImei } }))
+  state.selectedIot = selected.iot
+  localStorage.setItem(STORAGE_KEY, state.selectedIot)
+  window.dispatchEvent(new CustomEvent('selectedIotChanged', { detail: { iot: state.selectedIot } }))
   return selected
 }
 
-export const clearSelectedImei = () => {
-  state.selectedImei = null
+export const clearSelectedIot = () => {
+  state.selectedIot = null
   localStorage.removeItem(STORAGE_KEY)
-  window.dispatchEvent(new CustomEvent('selectedImeiChanged', { detail: { imei: null } }))
+  window.dispatchEvent(new CustomEvent('selectedIotChanged', { detail: { iot: null } }))
 }
 
 export const getSelectedBattery = async () => {
   const batteries = await ensureBatteries()
-  if (!state.selectedImei) return null
-  return batteries.find((b) => b.imei === state.selectedImei) || null
+  if (!state.selectedIot) return null
+  return batteries.find((b) => b.iot === state.selectedIot) || null
 }
 
 export const fetchBatteries = async () => {
@@ -118,7 +118,7 @@ export const fetchBatteries = async () => {
 
 export const fetchBatteryById = async (batteryId) => {
   const batteries = await ensureBatteries()
-  return batteries.find((b) => b.id === batteryId || b.name === batteryId || b.imei === batteryId) || batteries[0]
+  return batteries.find((b) => b.id === batteryId || b.name === batteryId || b.iot === batteryId) || batteries[0]
 }
 
 export const fetchAlerts = async () => {
@@ -158,14 +158,14 @@ export const fetchAnalytics = async () => {
 
 export const fetchMapBatteries = async () => {
   const batteries = await ensureBatteries()
-  const selected = state.selectedImei ? batteries.find((b) => b.imei === state.selectedImei) : null
+  const selected = state.selectedIot ? batteries.find((b) => b.iot === state.selectedIot) : null
   const scope = selected ? [selected] : batteries.slice(0, 18)
 
   const baseLat = 19.076
   const baseLng = 72.8777
   return scope.map((b, idx) => ({
     id: b.id,
-    imei: b.imei,
+    iot: b.iot,
     lat: baseLat + ((idx % 6) - 2.5) * 0.04,
     lng: baseLng + (Math.floor(idx / 6) - 1) * 0.05,
     online: b.status === 'Online',

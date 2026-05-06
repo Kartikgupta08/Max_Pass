@@ -6,6 +6,7 @@ import { fetchMapBatteries } from '../services/services.js'
 
 export default function LiveLocations() {
   const mapRef = useRef(null)
+  const mapContainerRef = useRef(null)
   const markerLayerRef = useRef(null)
   const [panelBattery, setPanelBattery] = useState(null)
   const [kpis, setKpis] = useState({ total: 0, online: 0, offline: 0 })
@@ -13,7 +14,8 @@ export default function LiveLocations() {
   useEffect(() => {
     const initMap = () => {
       if (mapRef.current) return mapRef.current
-      const instance = L.map('map').setView([19.0760, 72.8777], 11)
+      if (!mapContainerRef.current) return null
+      const instance = L.map(mapContainerRef.current).setView([19.0760, 72.8777], 11)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap'
@@ -39,6 +41,7 @@ export default function LiveLocations() {
       setKpis({ total: batteries.length, online: onlineCount, offline: batteries.length - onlineCount })
 
       const mapInstance = initMap()
+      if (!mapInstance) return
       markerLayerRef.current.clearLayers()
 
       const getVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
@@ -56,11 +59,11 @@ export default function LiveLocations() {
     }
 
     loadMap()
-    const onSelectedImeiChanged = () => loadMap()
-    window.addEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    const onSelectedIotChanged = () => loadMap()
+    window.addEventListener('selectedIotChanged', onSelectedIotChanged)
 
     return () => {
-      window.removeEventListener('selectedImeiChanged', onSelectedImeiChanged)
+      window.removeEventListener('selectedIotChanged', onSelectedIotChanged)
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -104,7 +107,7 @@ export default function LiveLocations() {
 
       <div className="map-layout">
         <div className="map-container">
-          <div id="map"></div>
+          <div id="map" ref={mapContainerRef}></div>
           <div className="map-legend">
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--danger-color)' }}></div> Battery Location</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: '#94a3b8' }}></div> Offline Battery</span>

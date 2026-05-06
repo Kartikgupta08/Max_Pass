@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import Chart from 'chart.js/auto'
 import MMD from '../data/mmd.js'
-import { getSelectedBattery, setSelectedImei } from '../services/services.js'
+import { getSelectedBattery, setSelectedIot } from '../services/services.js'
 
 export default function Cells() {
   const [cellData, setCellData] = useState([])
@@ -122,26 +122,26 @@ export default function Cells() {
     const syncSelectedBattery = async () => {
       const selected = await getSelectedBattery()
       if (!selected) return
-      const imeiInput = document.getElementById('cells-imei-input')
+      const iotInput = document.getElementById('cells-iot-input')
       const batteryTitle = document.getElementById('cells-battery-title')
-      if (imeiInput) imeiInput.value = selected.imei
+      if (iotInput) iotInput.value = selected.iot
       if (batteryTitle) batteryTitle.textContent = `Battery: ${selected.name} (${selected.id})`
     }
 
-    const onSelectedImeiChanged = () => syncSelectedBattery()
-    window.addEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    const onSelectedIotChanged = () => syncSelectedBattery()
+    window.addEventListener('selectedIotChanged', onSelectedIotChanged)
     syncSelectedBattery()
-    return () => window.removeEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    return () => window.removeEventListener('selectedIotChanged', onSelectedIotChanged)
   }, [])
 
-  const applyImeiSelection = async () => {
-    const imeiInput = document.getElementById('cells-imei-input')
+  const applyIotSelection = async () => {
+    const iotInput = document.getElementById('cells-iot-input')
     const batteryTitle = document.getElementById('cells-battery-title')
-    const imei = (imeiInput?.value || '').trim()
-    if (!imei) return
-    const selected = await setSelectedImei(imei)
+    const iot = (iotInput?.value || '').trim()
+    if (!iot) return
+    const selected = await setSelectedIot(iot)
     if (!selected) {
-      alert('IMEI not found. Please use a valid IMEI from Fleet Overview.')
+      alert('IOT ID not found. Please use a valid IOT ID from Fleet Overview.')
       return
     }
     if (batteryTitle) batteryTitle.textContent = `Battery: ${selected.name} (${selected.id})`
@@ -235,14 +235,14 @@ export default function Cells() {
 
       <div className="controls-bar card cell-controls">
         <div className="cell-search-group">
-          <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>IMEI ID</label>
+          <label className="info-label" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>IOT ID</label>
           <div className="search-wrapper cell-search-wrapper">
             <Search />
-            <input type="text" className="input-field" id="cells-imei-input" placeholder="Enter IMEI ID" />
+            <input type="text" className="input-field" id="cells-iot-input" placeholder="Enter IOT ID" />
           </div>
         </div>
         <div className="cell-actions">
-          <button className="btn btn-primary" id="cells-imei-search-btn" onClick={applyImeiSelection}><Search size={18} /> Search</button>
+          <button className="btn btn-primary" id="cells-iot-search-btn" onClick={applyIotSelection}><Search size={18} /> Search</button>
         </div>
       </div>
 

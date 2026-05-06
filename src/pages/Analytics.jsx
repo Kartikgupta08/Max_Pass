@@ -13,30 +13,35 @@ export default function Analytics() {
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
   const [endDate, setEndDate] = useState(new Date())
 
+  const [kpis, setKpis] = useState({ total: 0, online: 0, avgSoc: 0, avgSoh: 0 })
+  const [categories, setCategories] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const load = async () => {
+      setIsLoading(true)
       try {
-        analyticsDataRef.current = await fetchAnalytics()
-        updateKpis()
-        updateCategoryTable()
+        const data = await fetchAnalytics()
+        analyticsDataRef.current = data
+        setKpis(data.kpis)
+        setCategories(data.categories)
       } catch {
-        const tbody = document.getElementById('analytics-category-body')
-        if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 1.5rem; color: var(--danger-color);">Failed to load analytics data</td></tr>'
-        }
+        setCategories(null)
+      } finally {
+        setIsLoading(false)
+        renderCharts()
       }
-      renderCharts()
     }
 
     load()
 
-    const onSelectedImeiChanged = () => load()
-    window.addEventListener('selectedImeiChanged', onSelectedImeiChanged)
+    const onSelectedIotChanged = () => load()
+    window.addEventListener('selectedIotChanged', onSelectedIotChanged)
     window.addEventListener('themeChanged', renderCharts)
 
     return () => {
       instancesRef.current.forEach((c) => c.destroy())
-      window.removeEventListener('selectedImeiChanged', onSelectedImeiChanged)
+      window.removeEventListener('selectedIotChanged', onSelectedIotChanged)
       window.removeEventListener('themeChanged', renderCharts)
     }
   }, [])
@@ -47,36 +52,6 @@ export default function Analytics() {
   const getWarningColor = () => getVar('--warning-color') || '#f57c00'
   const getGridColor = () => getVar('--border-light') || '#dde5eb'
   const getTickColor = () => getVar('--text-secondary') || '#5c6d78'
-
-  const updateKpis = () => {
-    const data = analyticsDataRef.current
-    if (!data) return
-    const total = document.getElementById('analytics-kpi-total')
-    const online = document.getElementById('analytics-kpi-online')
-    const soc = document.getElementById('analytics-kpi-soc')
-    const soh = document.getElementById('analytics-kpi-soh')
-    if (total) total.textContent = data.kpis.total
-    if (online) online.textContent = data.kpis.online
-    if (soc) soc.innerHTML = `${data.kpis.avgSoc}<span class="kpi-unit">%</span>`
-    if (soh) soh.innerHTML = `${data.kpis.avgSoh}<span class="kpi-unit">%</span>`
-  }
-
-  const updateCategoryTable = () => {
-    const data = analyticsDataRef.current
-    const tbody = document.getElementById('analytics-category-body')
-    if (!tbody || !data) return
-    tbody.innerHTML = ''
-    data.categories.forEach((row) => {
-      const tr = document.createElement('tr')
-      tr.innerHTML = `
-        <td><span class="badge badge-blue">${row.category}</span></td>
-        <td><span class="badge success"><div class="badge-dot"></div>${row.online}</span></td>
-        <td><span class="badge danger"><div class="badge-dot"></div>${row.offline}</span></td>
-        <td>${row.avgSoh}%</td>
-      `
-      tbody.appendChild(tr)
-    })
-  }
 
   const commonOptions = {
     responsive: true,
@@ -232,7 +207,7 @@ export default function Analytics() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Total Batteries</div>
-              <div className="kpi-value" id="analytics-kpi-total">0</div>
+              <div className="kpi-value">{kpis.total}</div>
             </div>
             <BatteryCharging style={{ color: 'var(--primary-color)', width: 28, height: 28 }} />
           </div>
@@ -241,7 +216,7 @@ export default function Analytics() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Online Batteries</div>
-              <div className="kpi-value good" id="analytics-kpi-online">0</div>
+              <div className="kpi-value good">{kpis.online}</div>
             </div>
             <RadioTower style={{ color: 'var(--success-color)', width: 28, height: 28 }} />
           </div>
@@ -250,7 +225,7 @@ export default function Analytics() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Avg SOC</div>
-              <div className="kpi-value" style={{ color: 'var(--primary-color)' }} id="analytics-kpi-soc">0<span className="kpi-unit">%</span></div>
+              <div className="kpi-value" style={{ color: 'var(--primary-color)' }}>{kpis.avgSoc}<span className="kpi-unit">%</span></div>
             </div>
             <BatteryMedium style={{ color: 'var(--primary-color)', width: 28, height: 28 }} />
           </div>
@@ -259,7 +234,7 @@ export default function Analytics() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Avg SOH</div>
-              <div className="kpi-value good" id="analytics-kpi-soh">0<span className="kpi-unit">%</span></div>
+              <div className="kpi-value good">{kpis.avgSoh}<span className="kpi-unit">%</span></div>
             </div>
             <HeartPulse style={{ color: 'var(--success-color)', width: 28, height: 28 }} />
           </div>
@@ -292,8 +267,21 @@ export default function Analytics() {
               <th>Avg SOH</th>
             </tr>
           </thead>
-          <tbody id="analytics-category-body">
-            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)' }}>Loading category statistics...</td></tr>
+          <tbody>
+            {isLoading ? (
+              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)' }}>Loading category statistics...</td></tr>
+            ) : !categories ? (
+              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--danger-color)' }}>Failed to load analytics data</td></tr>
+            ) : categories.length === 0 ? (
+              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)' }}>No data available</td></tr>
+            ) : categories.map((row, idx) => (
+              <tr key={idx}>
+                <td><span className="badge badge-blue">{row.category}</span></td>
+                <td><span className="badge success"><div className="badge-dot"></div>{row.online}</span></td>
+                <td><span className="badge danger"><div className="badge-dot"></div>{row.offline}</span></td>
+                <td>{row.avgSoh}%</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
