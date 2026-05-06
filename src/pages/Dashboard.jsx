@@ -241,56 +241,56 @@ export default function Dashboard() {
       </header>
 
       <div className="kpi-grid fleet-kpi-grid">
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-info">
+        <div className="kpi-card fleet-kpi-card fleet-card-primary">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Total Devices</div>
               <div className="kpi-value" id="kpi-total-batteries">{allBatteries.length}</div>
               <div className="kpi-subtitle">All registered devices</div>
             </div>
-            <Database style={{ color: 'var(--info-color)', width: 28, height: 28 }} />
+            <div className="fleet-card-icon"><Database size={22} /></div>
           </div>
           <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: '100%', backgroundColor: 'var(--info-color)' }}></div>
+            <div className="progress-bar-fill" style={{ width: '100%', backgroundColor: 'var(--primary-color)' }}></div>
           </div>
         </div>
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-success">
+        <div className="kpi-card fleet-kpi-card fleet-card-success">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Online Devices</div>
-              <div className="kpi-value good" id="kpi-online-batteries">{onlineCount}</div>
+              <div className="kpi-value" id="kpi-online-batteries">{onlineCount}</div>
               <div className="kpi-subtitle">{onlinePerc}% of total devices</div>
             </div>
-            <RadioTower style={{ color: 'var(--success-color)', width: 28, height: 28 }} />
+            <div className="fleet-card-icon"><RadioTower size={22} /></div>
           </div>
           <div className="progress-bar-container">
             <div className="progress-bar-fill" style={{ width: `${onlinePerc}%`, backgroundColor: 'var(--success-color)' }}></div>
           </div>
         </div>
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-danger">
+        <div className="kpi-card fleet-kpi-card fleet-card-danger">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Offline Devices</div>
-              <div className="kpi-value critical" id="kpi-offline-batteries">{offlineCount}</div>
+              <div className="kpi-value" id="kpi-offline-batteries">{offlineCount}</div>
               <div className="kpi-subtitle">{offlinePerc}% of total devices</div>
             </div>
-            <WifiOff style={{ color: 'var(--danger-color)', width: 28, height: 28 }} />
+            <div className="fleet-card-icon"><WifiOff size={22} /></div>
           </div>
           <div className="progress-bar-container">
             <div className="progress-bar-fill" style={{ width: `${offlinePerc}%`, backgroundColor: 'var(--danger-color)' }}></div>
           </div>
         </div>
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-warning">
+        <div className="kpi-card fleet-kpi-card fleet-card-info">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Active Alerts</div>
-              <div className="kpi-value warning">8</div>
+              <div className="kpi-value">8</div>
               <div className="kpi-subtitle">Require attention</div>
             </div>
-            <BellRing style={{ color: 'var(--warning-color)', width: 28, height: 28 }} />
+            <div className="fleet-card-icon"><BellRing size={22} /></div>
           </div>
           <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: '15%', backgroundColor: 'var(--warning-color)' }}></div>
+            <div className="progress-bar-fill" style={{ width: '15%', backgroundColor: 'var(--info-color)' }}></div>
           </div>
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function Dashboard() {
           <input
             type="text"
             className="input-field"
-            placeholder="Search by name, device ID, or IOT ID..."
+            placeholder="Search by Device ID (IOT ID)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           />

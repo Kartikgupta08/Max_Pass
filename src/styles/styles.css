@@ -394,7 +394,9 @@ body { font-size: var(--text-base); line-height: 1.6; }
   color: var(--sidebar-text-muted); 
   font-weight: 500; 
   font-size: 0.9rem;
-  padding: var(--space-2) var(--space-4);
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border-radius: var(--radius-md);
   border: 2px solid var(--primary-color);
   background-color: color-mix(in srgb, var(--surface-color) 86%, var(--primary-light) 14%);
@@ -955,20 +957,51 @@ body { font-size: var(--text-base); line-height: 1.6; }
 }
 
 .fleet-kpi-card {
-  padding: var(--space-6);
+  padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
-  background: linear-gradient(180deg, var(--surface-color) 0%, var(--surface-hover) 100%);
+  background: var(--surface-color);
 }
 
 .fleet-kpi-card .kpi-title {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-1);
+  text-transform: none;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .fleet-kpi-card .kpi-value {
-  font-size: clamp(2rem, 3vw, 2.35rem);
+  font-size: 2rem;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
+
+/* Tinted KPI Cards */
+.fleet-card-primary { background-color: color-mix(in srgb, var(--primary-color) 12%, var(--surface-color)); border-color: color-mix(in srgb, var(--primary-color) 20%, var(--border-light)); }
+.fleet-card-success { background-color: color-mix(in srgb, var(--success-color) 12%, var(--surface-color)); border-color: color-mix(in srgb, var(--success-color) 20%, var(--border-light)); }
+.fleet-card-danger { background-color: color-mix(in srgb, var(--danger-color) 12%, var(--surface-color)); border-color: color-mix(in srgb, var(--danger-color) 20%, var(--border-light)); }
+.fleet-card-info { background-color: color-mix(in srgb, var(--info-color) 12%, var(--surface-color)); border-color: color-mix(in srgb, var(--info-color) 20%, var(--border-light)); }
+
+.fleet-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fleet-card-primary .fleet-card-icon { background-color: var(--primary-color); color: #ffffff; }
+.fleet-card-success .fleet-card-icon { background-color: var(--success-color); color: #ffffff; }
+.fleet-card-danger .fleet-card-icon { background-color: var(--danger-color); color: #ffffff; }
+.fleet-card-info .fleet-card-icon { background-color: var(--info-color); color: #ffffff; }
+
+.fleet-card-primary .progress-bar-container { background-color: color-mix(in srgb, var(--primary-color) 20%, transparent); }
+.fleet-card-success .progress-bar-container { background-color: color-mix(in srgb, var(--success-color) 20%, transparent); }
+.fleet-card-danger .progress-bar-container { background-color: color-mix(in srgb, var(--danger-color) 20%, transparent); }
+.fleet-card-info .progress-bar-container { background-color: color-mix(in srgb, var(--info-color) 20%, transparent); }
 
 .kpi-card { 
   display: flex; 

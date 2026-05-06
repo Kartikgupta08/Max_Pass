@@ -81,9 +81,8 @@ export default function Layout() {
           <span className="brand-label">MaxPass</span>
         </div>
         <div className="header-right">
-          <button type="button" className="theme-toggle" id="theme-toggle-btn" onClick={toggleTheme}>
+          <button type="button" className="theme-toggle" id="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            <span className="theme-label">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
         </div>
       </header>
