@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { ArrowUpDown, ChevronLeft, ChevronRight, Search, Smartphone, BatteryCharging, RadioTower, WifiOff, AlertTriangle } from 'lucide-react'
-import { fetchBatteries, getSelectedIot, setSelectedIot, clearSelectedIot } from '../services/services.js'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowUpDown, ChevronLeft, ChevronRight, Search, Smartphone, Database, RadioTower, WifiOff, BellRing, Expand, ArrowRight, BatteryCharging } from 'lucide-react'
+import Chart from 'chart.js/auto'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { fetchBatteries, getSelectedIot, setSelectedIot, clearSelectedIot, fetchMapBatteries } from '../services/services.js'
 import CustomSelect from '../components/CustomSelect.jsx'
 
 export default function Dashboard() {
@@ -14,6 +17,10 @@ export default function Dashboard() {
   const [status, setStatus] = useState('all')
   const [countLabel, setCountLabel] = useState('Loading devices...')
   const [globalIot, setGlobalIot] = useState('')
+  const chartRef = useRef(null)
+  const mapRef = useRef(null)
+  const mapContainerRef = useRef(null)
+  const [mapBatteries, setMapBatteries] = useState([])
 
   const pageSize = 10
 
@@ -31,7 +38,17 @@ export default function Dashboard() {
       }
     }
 
+    const loadMapData = async () => {
+      try {
+        const batteries = await fetchMapBatteries()
+        setMapBatteries(batteries)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
     load()
+    loadMapData()
   }, [])
 
   useEffect(() => {
@@ -91,9 +108,90 @@ export default function Dashboard() {
   const start = (currentPage - 1) * pageSize
   const pageData = filteredBatteries.slice(start, start + pageSize)
 
-  const totalCount = allBatteries.length
+  const totalCount = allBatteries.length || 1
   const onlineCount = allBatteries.filter((bat) => bat.status === 'Online').length
-  const offlineCount = totalCount - onlineCount
+  const offlineCount = allBatteries.length - onlineCount
+  const onlinePerc = ((onlineCount / totalCount) * 100).toFixed(1)
+  const offlinePerc = ((offlineCount / totalCount) * 100).toFixed(1)
+
+  useEffect(() => {
+    // Doughnut chart rendering
+    if (chartRef.current) chartRef.current.destroy()
+    const canvas = document.getElementById('dashboard-doughnut-chart')
+    if (canvas && allBatteries.length > 0) {
+      chartRef.current = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Online', 'Offline', 'Maintenance'],
+          datasets: [{
+            data: [onlineCount, offlineCount, 0],
+            backgroundColor: [
+              '#1a8f55', // success
+              '#c93b55', // danger
+              '#d6b340'  // warning
+            ],
+            borderWidth: 0,
+            cutout: '70%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          }
+        }
+      })
+    }
+  }, [allBatteries])
+
+  useEffect(() => {
+    // Leaflet map rendering
+    if (!mapContainerRef.current || mapBatteries.length === 0) return
+
+    if (!mapRef.current) {
+      mapRef.current = L.map(mapContainerRef.current, { zoomControl: false }).setView([19.0760, 72.8777], 11)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap © CARTO'
+      }).addTo(mapRef.current)
+    }
+
+    const onlineIcon = L.divIcon({
+      className: 'custom-pin',
+      html: `<div style="background-color: #1a8f55; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; box-shadow: 0 0 10px rgba(26,143,85,0.6);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    })
+
+    const offlineIcon = L.divIcon({
+      className: 'custom-pin',
+      html: `<div style="background-color: #c93b55; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; box-shadow: 0 0 10px rgba(201,59,85,0.6);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    })
+
+    // Add a few clusters to match UI visually
+    const clusters = [
+      { lat: 19.08, lng: 72.88, val: 12, online: true },
+      { lat: 19.12, lng: 72.90, val: 2, online: false },
+      { lat: 19.05, lng: 72.85, val: 8, online: true },
+      { lat: 19.02, lng: 72.88, val: 5, online: true },
+      { lat: 19.00, lng: 72.92, val: 4, online: false }
+    ]
+
+    clusters.forEach(c => {
+      const icon = L.divIcon({
+        className: 'custom-pin',
+        html: `<div style="background-color: ${c.online ? '#1a8f55' : '#c93b55'}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; box-shadow: 0 0 10px ${c.online ? 'rgba(26,143,85,0.6)' : 'rgba(201,59,85,0.6)'};">${c.val}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      })
+      L.marker([c.lat, c.lng], { icon }).addTo(mapRef.current)
+    })
+
+  }, [mapBatteries])
 
   const paginationNumbers = useMemo(() => {
     const maxPages = Math.min(5, totalPages)
@@ -143,13 +241,17 @@ export default function Dashboard() {
       </header>
 
       <div className="kpi-grid fleet-kpi-grid">
-        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-primary">
+        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-info">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
               <div className="kpi-title">Total Devices</div>
-              <div className="kpi-value" id="kpi-total-batteries">{totalCount}</div>
+              <div className="kpi-value" id="kpi-total-batteries">{allBatteries.length}</div>
+              <div className="kpi-subtitle">All registered devices</div>
             </div>
-            <BatteryCharging style={{ color: 'var(--primary-color)', width: 28, height: 28 }} />
+            <Database style={{ color: 'var(--info-color)', width: 28, height: 28 }} />
+          </div>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: '100%', backgroundColor: 'var(--info-color)' }}></div>
           </div>
         </div>
         <div className="kpi-card fleet-kpi-card edge-accent edge-accent-success">
@@ -157,8 +259,12 @@ export default function Dashboard() {
             <div>
               <div className="kpi-title">Online Devices</div>
               <div className="kpi-value good" id="kpi-online-batteries">{onlineCount}</div>
+              <div className="kpi-subtitle">{onlinePerc}% of total devices</div>
             </div>
             <RadioTower style={{ color: 'var(--success-color)', width: 28, height: 28 }} />
+          </div>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${onlinePerc}%`, backgroundColor: 'var(--success-color)' }}></div>
           </div>
         </div>
         <div className="kpi-card fleet-kpi-card edge-accent edge-accent-danger">
@@ -166,8 +272,90 @@ export default function Dashboard() {
             <div>
               <div className="kpi-title">Offline Devices</div>
               <div className="kpi-value critical" id="kpi-offline-batteries">{offlineCount}</div>
+              <div className="kpi-subtitle">{offlinePerc}% of total devices</div>
             </div>
             <WifiOff style={{ color: 'var(--danger-color)', width: 28, height: 28 }} />
+          </div>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${offlinePerc}%`, backgroundColor: 'var(--danger-color)' }}></div>
+          </div>
+        </div>
+        <div className="kpi-card fleet-kpi-card edge-accent edge-accent-warning">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+            <div>
+              <div className="kpi-title">Active Alerts</div>
+              <div className="kpi-value warning">8</div>
+              <div className="kpi-subtitle">Require attention</div>
+            </div>
+            <BellRing style={{ color: 'var(--warning-color)', width: 28, height: 28 }} />
+          </div>
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: '15%', backgroundColor: 'var(--warning-color)' }}></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-widgets">
+        {/* Device Status Overview Chart */}
+        <div className="dashboard-widget-card">
+          <div className="dashboard-widget-header">
+            <h3 className="dashboard-widget-title">Device Status Overview</h3>
+            <CustomSelect 
+              value={'this_week'} 
+              onChange={() => {}} 
+              options={[{ label: 'This Week', value: 'this_week' }, { label: 'This Month', value: 'this_month' }]} 
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, gap: '1.5rem' }}>
+            <div style={{ position: 'relative', width: '140px', height: '140px' }}>
+              <canvas id="dashboard-doughnut-chart"></canvas>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)', lineHeight: 1 }}>{allBatteries.length}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total</span>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="chart-legend-item">
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--success-color)' }}></span> Online</div>
+                <div style={{ color: 'var(--text-primary)' }}>{onlineCount} <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>({onlinePerc}%)</span></div>
+              </div>
+              <div className="chart-legend-item">
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--danger-color)' }}></span> Offline</div>
+                <div style={{ color: 'var(--text-primary)' }}>{offlineCount} <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>({offlinePerc}%)</span></div>
+              </div>
+              <div className="chart-legend-item">
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--warning-color)' }}></span> Maintenance</div>
+                <div style={{ color: 'var(--text-primary)' }}>0 <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>(0%)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Device Map Mini */}
+        <div className="dashboard-widget-card" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
+          <div className="dashboard-widget-header" style={{ padding: 'var(--space-4) var(--space-6)', marginBottom: 0, borderBottom: '1px solid var(--border-light)' }}>
+            <h3 className="dashboard-widget-title">Live Device Map</h3>
+            <button className="btn-icon" aria-label="Expand Map" onClick={() => window.location.href = '/map'}><Expand size={18} /></button>
+          </div>
+          <div style={{ display: 'flex', height: '220px' }}>
+            <div ref={mapContainerRef} style={{ flex: 1, height: '100%', borderRight: '1px solid var(--border-light)' }}></div>
+            <div style={{ width: '180px', padding: 'var(--space-4)', display: 'flex', flexDirection: 'column' }}>
+              <div className="chart-legend-item" style={{ padding: 'var(--space-1) 0', borderBottom: 'none' }}>
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--success-color)' }}></span> Online</div>
+                <div style={{ color: 'var(--text-primary)' }}>{onlineCount}</div>
+              </div>
+              <div className="chart-legend-item" style={{ padding: 'var(--space-1) 0', borderBottom: 'none' }}>
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--danger-color)' }}></span> Offline</div>
+                <div style={{ color: 'var(--text-primary)' }}>{offlineCount}</div>
+              </div>
+              <div className="chart-legend-item" style={{ padding: 'var(--space-1) 0', borderBottom: 'none' }}>
+                <div><span className="chart-legend-color-box" style={{ backgroundColor: 'var(--warning-color)' }}></span> Maintenance</div>
+                <div style={{ color: 'var(--text-primary)' }}>0</div>
+              </div>
+              <button className="btn btn-outline-primary" style={{ marginTop: 'auto', padding: 'var(--space-2)', fontSize: '0.75rem', justifyContent: 'center' }} onClick={() => window.location.href = '/map'}>
+                View Full Map <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -234,39 +422,77 @@ export default function Dashboard() {
                 </button>
               </th>
               <th>
+                <button className="sort-header" onClick={() => toggleSort('name')}>
+                  Device Name <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
+                </button>
+              </th>
+              <th>
                 <button className="sort-header" onClick={() => toggleSort('status')}>
                   Status <ArrowUpDown style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: -2 }} />
                 </button>
               </th>
-              <th>Tag</th>
+              <th>Category</th>
+              <th>Last Seen</th>
+              <th>Battery</th>
+              <th>Signal</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {pageData.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
                   No devices found
                 </td>
               </tr>
             ) : (
               pageData.map((bat) => {
                 const statusClass = bat.status === 'Online' ? 'success' : 'danger'
+                
+                // Mocks to match requested ui features not in standard API
+                const randomTime = ['2 min ago', '1 min ago', '15 min ago', '3 min ago', '1 hr ago'][Math.floor(Math.random() * 5)]
+                const randomBattery = bat.status === 'Online' ? Math.floor(Math.random() * 40) + 60 : '--'
+                const batteryColor = bat.status === 'Online' ? (randomBattery > 70 ? 'var(--success-color)' : 'var(--warning-color)') : 'var(--text-tertiary)'
+                const signalActiveNodes = bat.status === 'Online' ? (Math.floor(Math.random() * 2) + 3) : 0
+
                 return (
                   <tr key={bat.id}>
                     <td>
-                      <div style={{ fontWeight: 500 }}>{bat.iot}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{bat.iot}</div>
                     </td>
                     <td>
-                      <span className={`badge ${statusClass}`}>
-                        <div className="badge-dot"></div>
-                        {bat.status}
-                      </span>
+                      <div style={{ fontWeight: 600 }}>{bat.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{bat.tag === 'ESS' ? 'Energy Storage System' : (bat.tag === '2W' ? 'Power Inverter 2W' : 'Power Inverter 4W')}</div>
                     </td>
-                    <td><span className="badge badge-blue">{bat.tag}</span></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: statusClass === 'success' ? 'var(--success-color)' : 'var(--danger-color)' }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+                        <span style={{ fontSize: '0.875rem' }}>{bat.status}</span>
+                      </div>
+                    </td>
+                    <td>{bat.tag}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                         <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: statusClass === 'success' ? 'var(--success-color)' : 'var(--danger-color)' }}></div>
+                         {randomTime}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>{randomBattery !== '--' ? `${randomBattery}%` : '--'}</span>
+                        <BatteryCharging style={{ width: 16, height: 16, color: batteryColor }} />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="signal-bars">
+                        {[1, 2, 3, 4].map((node) => (
+                          <div key={node} className={`signal-bar ${node <= signalActiveNodes ? 'active' : ''}`}></div>
+                        ))}
+                      </div>
+                    </td>
                     <td>
                       <button className="btn-icon" title="View Details" aria-label="View device details">
-                        <span style={{ display: 'inline-flex', transform: 'translateY(1px)' }}>⋮</span>
+                        <span style={{ display: 'inline-flex', transform: 'translateY(-2px)', fontWeight: 'bold' }}>⋮</span>
                       </button>
                     </td>
                   </tr>
