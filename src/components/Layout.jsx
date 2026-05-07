@@ -78,7 +78,10 @@ export default function Layout() {
             <Menu size={18} />
           </button>
           <img src={logoUrl} alt="MaxPass" className="brand-logo" />
-          <span className="brand-label">MaxPass</span>
+          <span className="brand-label">
+            <span style={{ color: 'var(--primary-color)' }}>Max</span>
+            <span style={{ color: 'var(--text-primary)' }}>Pass</span>
+          </span>
         </div>
         <div className="header-right">
           <button type="button" className="theme-toggle" id="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
@@ -113,6 +116,7 @@ export default function Layout() {
           <li>
             <NavLink to="/alerts" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={closeSidebar}>
               <AlertTriangle size={20} /> <span className="nav-label">Alerts</span>
+              <span className="sidebar-badge nav-label">8</span>
             </NavLink>
           </li>
           <li>
